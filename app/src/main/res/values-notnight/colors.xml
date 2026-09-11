@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <color name="screen_background">#F4F9FC</color>
+    <color name="primary_text">#16222B</color>
+    <color name="secondary_text">#60727E</color>
+    <color name="accent_blue">#239BC0</color>
+    <color name="button_text">#FFFFFF</color>
+    <color name="button_secondary">#E5F3F8</color>
+
+</resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splashRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/screen_background">
+
+    <View
+        android:id="@+id/splashGlow"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:background="@drawable/bg_glow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvSplashLogo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LOWKEY"
+        android:textColor="@color/primary_text"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.12"
+        app:layout_constraintBottom_toBottomOf="@id/splashGlow"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/splashGlow" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

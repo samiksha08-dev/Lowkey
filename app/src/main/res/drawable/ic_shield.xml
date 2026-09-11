@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="180"
+    android:viewportHeight="180">
+
+    <!-- Outer orbital arc 1 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#BDEFF8"
+        android:strokeWidth="1.2"
+        android:pathData="
+            M 25,90
+            A 65,65 0,0 1,155,90" />
+
+    <!-- Outer orbital arc 2 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D7F7FC"
+        android:strokeWidth="1.2"
+        android:pathData="
+            M 155,90
+            A 65,65 0,0 1,25,90" />
+
+    <!-- Diagonal orbital line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D9F8FC"
+        android:strokeWidth="1"
+        android:pathData="
+            M 28,118
+            C 65,52 115,52 152,118" />
+
+    <!-- Opposite diagonal line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D9F8FC"
+        android:strokeWidth="1"
+        android:pathData="
+            M 28,62
+            C 65,128 115,128 152,62" />
+
+    <!-- Tech arc -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E5FAFD"
+        android:strokeWidth="1"
+        android:pathData="
+            M 42,42
+            A 52,52 0,0 1,138,42" />
+
+    <!-- Tech arc -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#E5FAFD"
+        android:strokeWidth="1"
+        android:pathData="
+            M 42,138
+            A 52,52 0,0 0,138,138" />
+
+    <!-- Shield -->
+    <path
+        android:fillColor="#EAFBFF"
+        android:strokeColor="#63C7DF"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M 90,36
+            L 127,49
+            V 78
+            C 127,103 113,123 90,137
+            C 67,123 53,103 53,78
+            V 49
+            Z" />
+
+    <!-- Shield inner edge -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#A8E5F1"
+        android:strokeWidth="2"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M 90,45
+            L 117,55
+            V 78
+            C 117,97 107,113 90,125
+            C 73,113 63,97 63,78
+            V 55
+            Z" />
+
+    <!-- Check mark -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#49B9D5"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M 72,87
+            L 84,99
+            L 108,73" />
+
+    <!-- Orbit nodes -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 25,90 A 65,65 0,0 0,25,90 Z" />
+
+</vector>

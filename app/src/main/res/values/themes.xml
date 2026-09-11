@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.Lowkey" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- Main dark background -->
+        <item name="android:windowBackground">@color/screen_background</item>
+        <item name="android:colorBackground">@color/screen_background</item>
+
+        <!-- Remove purple-looking system bar colors -->
+        <item name="android:statusBarColor">@color/screen_background</item>
+        <item name="android:navigationBarColor">@color/screen_background</item>
+
+        <!-- Dark icons -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Material colors -->
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorSecondary">@color/accent_blue</item>
+
+        <!-- Surface/card colors -->
+        <item name="colorSurface">@color/button_secondary</item>
+        <item name="colorSurfaceVariant">@color/button_secondary</item>
+
+    </style>
+
+    <style name="Theme.Lowkey" parent="Base.Theme.Lowkey" />
+
+</resources>
