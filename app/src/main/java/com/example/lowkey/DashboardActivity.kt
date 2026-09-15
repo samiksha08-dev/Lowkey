@@ -1,16 +1,18 @@
 package com.example.lowkey
 
-import android.content.res.ColorStateList
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.Button
+import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.content.Intent
+import com.example.lowkey.accelerometer.MonitoringService
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -18,6 +20,7 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_dashboard)
 
         // System bars
@@ -40,7 +43,9 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Views
-        val greeting = findViewById<TextView>(R.id.tvGreeting)
+        val greeting =
+            findViewById<TextView>(R.id.tvGreeting)
+
         val monitoringState =
             findViewById<TextView>(R.id.tvMonitoringState)
 
@@ -68,8 +73,7 @@ class DashboardActivity : AppCompatActivity() {
         val navProfile =
             findViewById<TextView>(R.id.navProfile)
 
-
-        // Load saved user's name
+        // Saved user information
         val preferences = getSharedPreferences(
             "LowkeyUser",
             MODE_PRIVATE
@@ -80,9 +84,21 @@ class DashboardActivity : AppCompatActivity() {
 
         greeting.text = "Hello, $savedName 👋"
 
-        // Initial state
+        // --------------------------------------------------
+        // RESTORE MONITORING STATE
+        // --------------------------------------------------
+
+        isMonitoring = preferences.getBoolean(
+            "isMonitoring",
+            false
+        )
+
+        // Show saved state on switch
+        monitoringSwitch.isChecked = isMonitoring
+
+        // Show saved state on dashboard
         updateDashboard(
-            enabled = false,
+            enabled = isMonitoring,
             monitoringState = monitoringState,
             confidenceScore = confidenceScore,
             verificationStatus = verificationStatus,
@@ -92,7 +108,10 @@ class DashboardActivity : AppCompatActivity() {
             progressConfidence = progressConfidence
         )
 
-        // Switch
+        // --------------------------------------------------
+        // MONITORING SWITCH
+        // --------------------------------------------------
+
         monitoringSwitch.setOnCheckedChangeListener { _, checked ->
 
             if (isMonitoring == checked) {
@@ -100,6 +119,17 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             isMonitoring = checked
+
+            // Save monitoring state
+            preferences.edit()
+                .putBoolean("isMonitoring", checked)
+                .apply()
+
+            if (checked) {
+                startMonitoringService()
+            } else {
+                stopMonitoringService()
+            }
 
             updateDashboard(
                 enabled = checked,
@@ -112,6 +142,11 @@ class DashboardActivity : AppCompatActivity() {
                 progressConfidence = progressConfidence
             )
         }
+
+        // --------------------------------------------------
+        // PROFILE
+        // --------------------------------------------------
+
         navProfile.setOnClickListener {
 
             val intent = Intent(
@@ -121,9 +156,86 @@ class DashboardActivity : AppCompatActivity() {
 
             startActivity(intent)
         }
-
     }
 
+    // ------------------------------------------------------
+    // START MONITORING SERVICE
+    // ------------------------------------------------------
+
+    private fun startMonitoringService() {
+
+        try {
+
+            Log.d(
+                "LOWKEY_SERVICE",
+                "Starting MonitoringService"
+            )
+
+            val intent = Intent(
+                this,
+                MonitoringService::class.java
+            )
+
+            ContextCompat.startForegroundService(
+                this,
+                intent
+            )
+
+            Toast.makeText(
+                this,
+                "Monitoring started",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            Log.d(
+                "LOWKEY_SERVICE",
+                "startForegroundService() called"
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "LOWKEY_SERVICE",
+                "Failed to start MonitoringService",
+                e
+            )
+
+            Toast.makeText(
+                this,
+                "Service error: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    // ------------------------------------------------------
+    // STOP MONITORING SERVICE
+    // ------------------------------------------------------
+
+    private fun stopMonitoringService() {
+
+        val intent = Intent(
+            this,
+            MonitoringService::class.java
+        )
+
+        stopService(intent)
+
+        Toast.makeText(
+            this,
+            "Monitoring stopped",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        Log.d(
+            "LOWKEY_SERVICE",
+            "MonitoringService stopped"
+        )
+    }
+
+    // ------------------------------------------------------
+    // UPDATE DASHBOARD UI
+    // ------------------------------------------------------
 
     private fun updateDashboard(
         enabled: Boolean,
@@ -139,15 +251,21 @@ class DashboardActivity : AppCompatActivity() {
         if (enabled) {
 
             monitoringState.text = "ON"
+
             monitoringState.setTextColor(
                 Color.rgb(45, 170, 105)
             )
 
+            // Demo values for now
             confidenceScore.text = "92%"
-            verificationStatus.text = "✓  User Verified"
+
+            verificationStatus.text =
+                "✓ User Verified"
 
             protectedApps.text = "3"
+
             alerts.text = "0"
+
             todayChecks.text = "24"
 
             progressConfidence.progress = 92
@@ -155,16 +273,20 @@ class DashboardActivity : AppCompatActivity() {
         } else {
 
             monitoringState.text = "OFF"
+
             monitoringState.setTextColor(
                 Color.rgb(96, 114, 126)
             )
 
-
             confidenceScore.text = "--"
-            verificationStatus.text = "Not yet available"
+
+            verificationStatus.text =
+                "Not yet available"
 
             protectedApps.text = "0"
+
             alerts.text = "0"
+
             todayChecks.text = "0"
 
             progressConfidence.progress = 0

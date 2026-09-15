@@ -15,9 +15,26 @@ class SplashActivity : AppCompatActivity() {
 
         Handler(Looper.getMainLooper()).postDelayed({
 
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            val preferences = getSharedPreferences(
+                "LowkeyUser",
+                MODE_PRIVATE
+            )
 
+            val isLoggedIn =
+                preferences.getBoolean("isLoggedIn", false)
+
+            val nextActivity = if (isLoggedIn) {
+                DashboardActivity::class.java
+            } else {
+                MainActivity::class.java
+            }
+
+            val intent = Intent(
+                this,
+                nextActivity
+            )
+
+            startActivity(intent)
             finish()
 
         }, 1500)

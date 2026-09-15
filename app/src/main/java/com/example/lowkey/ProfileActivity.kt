@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -106,7 +107,9 @@ class ProfileActivity : AppCompatActivity() {
         // LOG OUT
         logout.setOnClickListener {
 
-            preferences.edit().clear().apply()
+            preferences.edit {
+                putBoolean("isLoggedIn", false)
+            }
 
             val intent = Intent(
                 this,

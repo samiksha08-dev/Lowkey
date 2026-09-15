@@ -66,6 +66,7 @@ class SignupActivity : AppCompatActivity() {
                         .putString("name", nameText)
                         .putString("email", emailText)
                         .putString("password", passwordText)
+                        .putBoolean("isLoggedIn", true)
                         .apply()
 
                     Toast.makeText(

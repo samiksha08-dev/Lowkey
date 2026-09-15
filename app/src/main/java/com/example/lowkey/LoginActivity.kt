@@ -118,6 +118,10 @@ class LoginActivity : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
+                preferences.edit()
+                    .putBoolean("isLoggedIn", true)
+                    .apply()
+
                 val intent = Intent(
                     this,
                     DashboardActivity::class.java
