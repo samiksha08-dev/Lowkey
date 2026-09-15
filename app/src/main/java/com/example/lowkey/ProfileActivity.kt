@@ -107,9 +107,9 @@ class ProfileActivity : AppCompatActivity() {
         // LOG OUT
         logout.setOnClickListener {
 
-            preferences.edit {
-                putBoolean("isLoggedIn", false)
-            }
+            preferences.edit()
+                .putBoolean("isLoggedIn", false)
+                .apply()
 
             val intent = Intent(
                 this,

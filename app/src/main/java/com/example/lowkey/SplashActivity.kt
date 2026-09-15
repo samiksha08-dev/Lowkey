@@ -20,21 +20,21 @@ class SplashActivity : AppCompatActivity() {
                 MODE_PRIVATE
             )
 
-            val isLoggedIn =
-                preferences.getBoolean("isLoggedIn", false)
+            val isLoggedIn = preferences.getBoolean(
+                "isLoggedIn",
+                false
+            )
 
-            val nextActivity = if (isLoggedIn) {
+            val nextScreen = if (isLoggedIn) {
                 DashboardActivity::class.java
             } else {
                 MainActivity::class.java
             }
 
-            val intent = Intent(
-                this,
-                nextActivity
+            startActivity(
+                Intent(this, nextScreen)
             )
 
-            startActivity(intent)
             finish()
 
         }, 1500)
