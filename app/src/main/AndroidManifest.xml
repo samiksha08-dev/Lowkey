@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
 
     <application
         android:allowBackup="true"
@@ -64,6 +66,10 @@
                 android:value="Continuous behavioral accelerometer monitoring for authentication" />
 
         </service>
+
+        <service
+            android:name=".security.ProtectionOverlayService"
+            android:exported="false" />
 
     </application>
 

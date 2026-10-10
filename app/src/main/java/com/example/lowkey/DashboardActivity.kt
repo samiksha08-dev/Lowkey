@@ -13,6 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.lowkey.accelerometer.MonitoringService
+import com.example.lowkey.security.SecurityManager
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Button
+import com.example.lowkey.security.ProtectionOverlayService
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -40,6 +45,15 @@ class DashboardActivity : AppCompatActivity() {
             )
 
             insets
+        }
+
+        // TEST PROTECTION
+        val btnTestProtection = findViewById<Button>(R.id.btnTestProtection)
+
+        btnTestProtection.setOnClickListener {
+            val intent = Intent(this, MonitoringService::class.java)
+            intent.action = "TEST_PROTECTION"
+            startService(intent)
         }
 
         // Views
@@ -115,6 +129,27 @@ class DashboardActivity : AppCompatActivity() {
         monitoringSwitch.setOnCheckedChangeListener { _, checked ->
 
             if (isMonitoring == checked) {
+                return@setOnCheckedChangeListener
+            }
+
+            // Overlay permission is required for protection
+            if (checked && !Settings.canDrawOverlays(this)) {
+
+                monitoringSwitch.isChecked = false
+
+                Toast.makeText(
+                    this,
+                    "Please allow 'Display over other apps' permission",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+
+                startActivity(intent)
+
                 return@setOnCheckedChangeListener
             }
 
@@ -256,7 +291,9 @@ class DashboardActivity : AppCompatActivity() {
                 Color.rgb(45, 170, 105)
             )
 
-            // Demo values for now
+
+
+
             confidenceScore.text = "92%"
 
             verificationStatus.text =

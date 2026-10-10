@@ -1,4 +1,5 @@
 package com.example.lowkey.accelerometer
+import com.example.lowkey.security.SecurityManager
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -8,7 +9,9 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-
+import android.provider.Settings
+import android.util.Log
+import com.example.lowkey.security.ProtectionOverlayService
 class MonitoringService : Service() {
 
     private lateinit var accelerometerCollector: AccelerometerCollector
@@ -23,11 +26,14 @@ class MonitoringService : Service() {
         }
     }
 
+
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
         startId: Int
     ): Int {
+
+        startMonitoringService()
 
         val preferences = getSharedPreferences(
             "LowkeyUser",
@@ -38,12 +44,11 @@ class MonitoringService : Service() {
             .putBoolean("isMonitoring", true)
             .apply()
 
-        startMonitoringService()
-
         accelerometerCollector.start()
 
         return START_STICKY
     }
+
 
     private fun startMonitoringService() {
 
@@ -85,6 +90,54 @@ class MonitoringService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
+
+
+    private fun triggerProtectionForTest() {
+        if (!Settings.canDrawOverlays(this)) {
+            Log.e("LOWKEY_SECURITY", "Overlay permission missing")
+            return
+        }
+
+        val intent = Intent(this, ProtectionOverlayService::class.java)
+        startService(intent)
+
+        Log.d("LOWKEY_SECURITY", "Suspicious behaviour detected. Protection triggered.")
+    }
+
+
+    private fun showGrantAccess() {
+        if (!Settings.canDrawOverlays(this)) {
+            Log.e("LOWKEY_SECURITY", "Overlay permission missing")
+            return
+        }
+
+        val intent = Intent(this, ProtectionOverlayService::class.java)
+        intent.action = "SHOW_GRANT_ACCESS"
+        startService(intent)
+
+        Log.d("LOWKEY_SECURITY", "Grant Access requested")
+    }
+
+
+    private fun handleSecurityState(confidence: Float) {
+        val securityManager = com.example.lowkey.security.SecurityManager()
+        val state = securityManager.evaluateConfidence(confidence)
+
+        when (state) {
+            com.example.lowkey.security.SecurityManager.SecurityState.SUSPICIOUS -> {
+                triggerProtectionForTest()
+            }
+
+            com.example.lowkey.security.SecurityManager.SecurityState.GENUINE -> {
+                showGrantAccess()
+            }
+
+            com.example.lowkey.security.SecurityManager.SecurityState.NEEDS_VERIFICATION -> {
+                Log.d("LOWKEY_SECURITY", "Verification pending")
+            }
+        }
+    }
+
 
     private fun saveRecord(record: BehaviourRecord) {
 
