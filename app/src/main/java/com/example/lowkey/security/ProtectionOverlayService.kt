@@ -90,7 +90,7 @@ class ProtectionOverlayService : Service() {
         verifyButton = button
 
         button.text = "GRANT ACCESS"
-        button.visibility = TextView.GONE
+        button.visibility = TextView.VISIBLE
         button.textSize = 17f
         button.setTextColor(Color.WHITE)
         button.gravity = Gravity.CENTER
@@ -123,13 +123,14 @@ class ProtectionOverlayService : Service() {
     }
 
     override fun onDestroy() {
-
         protectionView?.let {
-            windowManager.removeView(it)
+            try {
+                windowManager.removeView(it)
+            } catch (e: IllegalArgumentException) {
+                // The overlay may already have been removed.
+            }
         }
-
         protectionView = null
-
         super.onDestroy()
     }
 

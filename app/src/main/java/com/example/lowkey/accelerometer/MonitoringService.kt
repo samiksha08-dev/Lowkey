@@ -34,7 +34,10 @@ class MonitoringService : Service() {
     ): Int {
 
         startMonitoringService()
-
+        if (intent?.action == "TEST_PROTECTION") {
+            triggerProtectionForTest()
+            return START_NOT_STICKY
+        }
         val preferences = getSharedPreferences(
             "LowkeyUser",
             MODE_PRIVATE

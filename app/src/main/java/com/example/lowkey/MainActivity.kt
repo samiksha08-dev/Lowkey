@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
+        val tapDatabase = TapDatabaseHelper(this)
 
         val loginButton = findViewById<Button>(R.id.btnLogin)
         val signupButton = findViewById<Button>(R.id.btnSignup)
@@ -25,5 +26,19 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
         }
+    }
+    private fun saveTap(
+        x: Float,
+        y: Float,
+        durationMs: Long
+    ) {
+        val tap = TapEvent(
+            timestamp = System.currentTimeMillis(),
+            xPosition = x,
+            yPosition = y,
+            durationMs = durationMs
+        )
+
+        TapDatabaseHelper(this).insertTap(tap)
     }
 }

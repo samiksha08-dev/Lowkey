@@ -2,8 +2,11 @@ package com.example.lowkey
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -13,26 +16,25 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.lowkey.accelerometer.MonitoringService
-import com.example.lowkey.security.SecurityManager
-import android.net.Uri
-import android.provider.Settings
-import android.widget.Button
-import com.example.lowkey.security.ProtectionOverlayService
 
 class DashboardActivity : AppCompatActivity() {
 
     private var isMonitoring = false
+    private lateinit var tapDatabase: TapDatabaseHelper
+
+    private lateinit var tvTapCount: TextView
+    private lateinit var tvScrollCount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_dashboard)
+
+        tapDatabase = TapDatabaseHelper(this)
 
         // System bars
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
         ) { view, insets ->
-
             val systemBars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars()
             )
@@ -47,45 +49,55 @@ class DashboardActivity : AppCompatActivity() {
             insets
         }
 
-        // TEST PROTECTION
-        val btnTestProtection = findViewById<Button>(R.id.btnTestProtection)
+        // Test protection button
+        val btnTestProtection =
+            findViewById<Button>(R.id.btnTestProtection)
 
         btnTestProtection.setOnClickListener {
             val intent = Intent(this, MonitoringService::class.java)
             intent.action = "TEST_PROTECTION"
+
+            Toast.makeText(
+                this,
+                "Test Protection button clicked",
+                Toast.LENGTH_SHORT
+            ).show()
+
             startService(intent)
         }
 
-        // Views
-        val greeting =
-            findViewById<TextView>(R.id.tvGreeting)
+        // Track touch events on the test button
+        val tapTracker = TapTouchTracker { event ->
+            tapDatabase.insertTap(event)
+            refreshTapScrollCounts()
+        }
 
+        btnTestProtection.setOnTouchListener(tapTracker)
+
+        // Dashboard views
+        val greeting = findViewById<TextView>(R.id.tvGreeting)
         val monitoringState =
             findViewById<TextView>(R.id.tvMonitoringState)
-
         val monitoringSwitch =
             findViewById<SwitchCompat>(R.id.switchMonitoring)
-
         val confidenceScore =
             findViewById<TextView>(R.id.tvConfidenceScore)
-
         val verificationStatus =
             findViewById<TextView>(R.id.tvVerificationStatus)
-
         val protectedApps =
             findViewById<TextView>(R.id.tvProtectedApps)
-
         val alerts =
             findViewById<TextView>(R.id.tvAlerts)
-
         val todayChecks =
             findViewById<TextView>(R.id.tvTodayChecks)
-
         val progressConfidence =
             findViewById<ProgressBar>(R.id.progressConfidence)
-
         val navProfile =
             findViewById<TextView>(R.id.navProfile)
+
+        // Tap and scroll count views
+        tvTapCount = findViewById(R.id.tvTapCount)
+        tvScrollCount = findViewById(R.id.tvScrollCount)
 
         // Saved user information
         val preferences = getSharedPreferences(
@@ -93,24 +105,13 @@ class DashboardActivity : AppCompatActivity() {
             MODE_PRIVATE
         )
 
-        val savedName =
-            preferences.getString("name", "User")
-
+        val savedName = preferences.getString("name", "User")
         greeting.text = "Hello, $savedName 👋"
 
-        // --------------------------------------------------
-        // RESTORE MONITORING STATE
-        // --------------------------------------------------
-
-        isMonitoring = preferences.getBoolean(
-            "isMonitoring",
-            false
-        )
-
-        // Show saved state on switch
+        // Restore monitoring state
+        isMonitoring = preferences.getBoolean("isMonitoring", false)
         monitoringSwitch.isChecked = isMonitoring
 
-        // Show saved state on dashboard
         updateDashboard(
             enabled = isMonitoring,
             monitoringState = monitoringState,
@@ -122,19 +123,17 @@ class DashboardActivity : AppCompatActivity() {
             progressConfidence = progressConfidence
         )
 
-        // --------------------------------------------------
-        // MONITORING SWITCH
-        // --------------------------------------------------
+        // Load saved tap and scroll totals
+        refreshTapScrollCounts()
 
+        // Monitoring switch
         monitoringSwitch.setOnCheckedChangeListener { _, checked ->
-
             if (isMonitoring == checked) {
                 return@setOnCheckedChangeListener
             }
 
             // Overlay permission is required for protection
             if (checked && !Settings.canDrawOverlays(this)) {
-
                 monitoringSwitch.isChecked = false
 
                 Toast.makeText(
@@ -149,13 +148,11 @@ class DashboardActivity : AppCompatActivity() {
                 )
 
                 startActivity(intent)
-
                 return@setOnCheckedChangeListener
             }
 
             isMonitoring = checked
 
-            // Save monitoring state
             preferences.edit()
                 .putBoolean("isMonitoring", checked)
                 .apply()
@@ -178,43 +175,40 @@ class DashboardActivity : AppCompatActivity() {
             )
         }
 
-        // --------------------------------------------------
-        // PROFILE
-        // --------------------------------------------------
-
+        // Profile
         navProfile.setOnClickListener {
-
-            val intent = Intent(
-                this,
-                ProfileActivity::class.java
-            )
-
+            val intent = Intent(this, ProfileActivity::class.java)
             startActivity(intent)
         }
     }
 
-    // ------------------------------------------------------
-    // START MONITORING SERVICE
-    // ------------------------------------------------------
+    override fun onResume() {
+        super.onResume()
 
+        if (::tapDatabase.isInitialized &&
+            ::tvTapCount.isInitialized &&
+            ::tvScrollCount.isInitialized
+        ) {
+            refreshTapScrollCounts()
+        }
+    }
+
+    private fun refreshTapScrollCounts() {
+        tvTapCount.text = "Taps: ${tapDatabase.getTapCount()}"
+        tvScrollCount.text = "Scrolls: ${tapDatabase.getScrollCount()}"
+    }
+
+    // Start monitoring service
     private fun startMonitoringService() {
-
         try {
-
-            Log.d(
-                "LOWKEY_SERVICE",
-                "Starting MonitoringService"
-            )
+            Log.d("LOWKEY_SERVICE", "Starting MonitoringService")
 
             val intent = Intent(
                 this,
                 MonitoringService::class.java
             )
 
-            ContextCompat.startForegroundService(
-                this,
-                intent
-            )
+            ContextCompat.startForegroundService(this, intent)
 
             Toast.makeText(
                 this,
@@ -226,9 +220,7 @@ class DashboardActivity : AppCompatActivity() {
                 "LOWKEY_SERVICE",
                 "startForegroundService() called"
             )
-
         } catch (e: Exception) {
-
             Log.e(
                 "LOWKEY_SERVICE",
                 "Failed to start MonitoringService",
@@ -243,12 +235,8 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    // ------------------------------------------------------
-    // STOP MONITORING SERVICE
-    // ------------------------------------------------------
-
+    // Stop monitoring service
     private fun stopMonitoringService() {
-
         val intent = Intent(
             this,
             MonitoringService::class.java
@@ -268,10 +256,7 @@ class DashboardActivity : AppCompatActivity() {
         )
     }
 
-    // ------------------------------------------------------
-    // UPDATE DASHBOARD UI
-    // ------------------------------------------------------
-
+    // Update dashboard UI
     private fun updateDashboard(
         enabled: Boolean,
         monitoringState: TextView,
@@ -282,51 +267,33 @@ class DashboardActivity : AppCompatActivity() {
         todayChecks: TextView,
         progressConfidence: ProgressBar
     ) {
-
         if (enabled) {
-
             monitoringState.text = "ON"
-
-            monitoringState.setTextColor(
-                Color.rgb(45, 170, 105)
-            )
-
-
-
+            monitoringState.setTextColor(Color.rgb(45, 170, 105))
 
             confidenceScore.text = "92%"
-
-            verificationStatus.text =
-                "✓ User Verified"
-
+            verificationStatus.text = "✓ User Verified"
             protectedApps.text = "3"
-
             alerts.text = "0"
-
             todayChecks.text = "24"
-
             progressConfidence.progress = 92
-
         } else {
-
             monitoringState.text = "OFF"
-
-            monitoringState.setTextColor(
-                Color.rgb(96, 114, 126)
-            )
+            monitoringState.setTextColor(Color.rgb(96, 114, 126))
 
             confidenceScore.text = "--"
-
-            verificationStatus.text =
-                "Not yet available"
-
+            verificationStatus.text = "Not yet available"
             protectedApps.text = "0"
-
             alerts.text = "0"
-
             todayChecks.text = "0"
-
             progressConfidence.progress = 0
         }
+    }
+
+    override fun onDestroy() {
+        if (::tapDatabase.isInitialized) {
+            tapDatabase.close()
+        }
+        super.onDestroy()
     }
 }
