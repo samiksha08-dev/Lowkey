@@ -1,5 +1,4 @@
-
-package com.example.lowkey
+package com.example.lowkey.tap
 
 import android.content.ContentValues
 import android.content.Context
@@ -8,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
 class TapDatabaseHelper(context: Context) :
-    SQLiteOpenHelper(context, "lowkey_taps.db", null, 2) {
+    SQLiteOpenHelper(context, "lowkey_taps.db", null, 3) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -19,7 +18,13 @@ class TapDatabaseHelper(context: Context) :
                 x_position REAL,
                 y_position REAL,
                 duration_ms INTEGER,
-                event_type TEXT NOT NULL DEFAULT 'TAP'
+                event_type TEXT NOT NULL DEFAULT 'TAP',
+                scroll_x INTEGER,
+                scroll_y INTEGER,
+                scroll_delta_x INTEGER,
+                scroll_delta_y INTEGER,
+                max_scroll_x INTEGER,
+                max_scroll_y INTEGER
             )
             """.trimIndent()
         )
@@ -35,6 +40,15 @@ class TapDatabaseHelper(context: Context) :
                 "ALTER TABLE tap_events ADD COLUMN event_type TEXT NOT NULL DEFAULT 'TAP'"
             )
         }
+
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN scroll_x INTEGER")
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN scroll_y INTEGER")
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN scroll_delta_x INTEGER")
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN scroll_delta_y INTEGER")
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN max_scroll_x INTEGER")
+            db.execSQL("ALTER TABLE tap_events ADD COLUMN max_scroll_y INTEGER")
+        }
     }
 
     fun insertTap(event: TapEvent): Long {
@@ -44,6 +58,13 @@ class TapDatabaseHelper(context: Context) :
             put("y_position", event.yPosition)
             put("duration_ms", event.durationMs)
             put("event_type", event.eventType)
+
+            put("scroll_x", event.scrollX)
+            put("scroll_y", event.scrollY)
+            put("scroll_delta_x", event.scrollDeltaX)
+            put("scroll_delta_y", event.scrollDeltaY)
+            put("max_scroll_x", event.maxScrollX)
+            put("max_scroll_y", event.maxScrollY)
         }
 
         val result = writableDatabase.insert(
@@ -66,7 +87,10 @@ class TapDatabaseHelper(context: Context) :
         val cursor = readableDatabase.rawQuery(
             """
             SELECT timestamp, x_position, y_position,
-                   duration_ms, event_type
+                   duration_ms, event_type,
+                   scroll_x, scroll_y,
+                   scroll_delta_x, scroll_delta_y,
+                   max_scroll_x, max_scroll_y
             FROM tap_events
             ORDER BY id DESC
             """.trimIndent(),
@@ -81,7 +105,13 @@ class TapDatabaseHelper(context: Context) :
                         xPosition = if (it.isNull(1)) null else it.getFloat(1),
                         yPosition = if (it.isNull(2)) null else it.getFloat(2),
                         durationMs = if (it.isNull(3)) null else it.getLong(3),
-                        eventType = it.getString(4)
+                        eventType = it.getString(4),
+                        scrollX = if (it.isNull(5)) null else it.getInt(5),
+                        scrollY = if (it.isNull(6)) null else it.getInt(6),
+                        scrollDeltaX = if (it.isNull(7)) null else it.getInt(7),
+                        scrollDeltaY = if (it.isNull(8)) null else it.getInt(8),
+                        maxScrollX = if (it.isNull(9)) null else it.getInt(9),
+                        maxScrollY = if (it.isNull(10)) null else it.getInt(10)
                     )
                 )
             }

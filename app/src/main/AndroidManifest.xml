@@ -71,7 +71,7 @@
             android:name=".security.ProtectionOverlayService"
             android:exported="false" />
         <service
-            android:name=".TapMonitoringService"
+            android:name=".tap.TapMonitoringService"
             android:label="Tap Behaviour Monitoring"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true">

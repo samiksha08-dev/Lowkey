@@ -1,4 +1,4 @@
-package com.example.lowkey
+package com.example.lowkey.tap
 
 import android.view.MotionEvent
 import android.view.View
