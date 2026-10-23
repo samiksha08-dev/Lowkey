@@ -13,3 +13,19 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local Android Studio files
+.idea/
+
+# Local collected data and database exports
+accelerometer_2k.csv
+accelerometer_data.csv
+accelerometer_full.csv
+lowkey_taps_check.db
+lowkey_taps_check.db~
+scroll_data_raw.csv
+tap_data_raw.csv
+tap_data_temp.csv
+tap_data.csv
+tap_scroll_speed.csv
+tap_data_backup.csv
