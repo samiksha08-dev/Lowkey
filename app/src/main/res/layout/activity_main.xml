@@ -1,108 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/main"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/screen_background"
     tools:context=".MainActivity">
 
-    <!-- App Name -->
-    <TextView
-        android:id="@+id/tvLogo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:text="LOWKEY"
-        android:textColor="@color/primary_text"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.08"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Tagline -->
-    <TextView
-        android:id="@+id/tvTagline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="Stay private.\nStay secure."
-        android:textColor="@color/secondary_text"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLogo" />
-
-    <!-- Glow -->
-    <View
-        android:id="@+id/glowView"
-        android:layout_width="250dp"
-        android:layout_height="250dp"
-        android:layout_marginTop="25dp"
-        android:background="@drawable/bg_glow"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTagline" />
-
-    <!-- Center Symbol -->
-    <ImageView
-        android:id="@+id/ivShield"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:contentDescription="Lowkey security shield"
-        android:src="@drawable/ic_shield"
-        android:scaleType="centerInside"
-        app:layout_constraintBottom_toBottomOf="@id/glowView"
-        app:layout_constraintEnd_toEndOf="@id/glowView"
-        app:layout_constraintStart_toStartOf="@id/glowView"
-        app:layout_constraintTop_toTopOf="@id/glowView" />
-
-    <!-- Login Button -->
-    <Button
-        android:id="@+id/btnLogin"
+    <ScrollView
         android:layout_width="0dp"
-        android:layout_height="58dp"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="35dp"
-        android:layout_marginEnd="36dp"
-        android:background="@drawable/bg_primary_button"
-        android:backgroundTint="@null"
-        android:text="LOG IN"
-        android:textColor="@color/button_text"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:elevation="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/glowView" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Signup Button -->
-    <Button
-        android:id="@+id/btnSignup"
-        android:layout_width="0dp"
-        android:layout_height="58dp"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="36dp"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingStart="28dp"
+            android:paddingTop="22dp"
+            android:paddingEnd="28dp"
+            android:paddingBottom="24dp">
 
-        android:background="@drawable/bg_secondary_button"
-        android:backgroundTint="@null"
+            <TextView
+                android:id="@+id/tvLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="LOWKEY"
+                android:textColor="@color/primary_text"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
 
-        app:backgroundTint="@null"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/bg_status_card"
+                android:paddingStart="12dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="7dp"
+                android:text="ZERO-TRUST SECURITY"
+                android:textColor="@color/accent_blue"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.14" />
 
-        android:text="SIGN UP"
-        android:textColor="@color/accent_blue"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:elevation="2dp"
+            <TextView
+                android:id="@+id/tvTagline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center"
+                android:text="Stay private.\nStay secure."
+                android:textColor="@color/primary_text"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:lineSpacingExtra="3dp" />
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnLogin" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="Personal security that adapts to the way you use your device."
+                android:textColor="@color/secondary_text"
+                android:textSize="14sp"
+                android:lineSpacingExtra="3dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="230dp"
+                android:layout_marginTop="8dp">
+
+                <View
+                    android:id="@+id/glowView"
+                    android:layout_width="220dp"
+                    android:layout_height="220dp"
+                    android:background="@drawable/bg_glow"
+                    android:contentDescription=""
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/ivShield"
+                    android:layout_width="148dp"
+                    android:layout_height="148dp"
+                    android:contentDescription="LOWKEY security shield"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_shield"
+                    app:layout_constraintBottom_toBottomOf="@id/glowView"
+                    app:layout_constraintEnd_toEndOf="@id/glowView"
+                    app:layout_constraintStart_toStartOf="@id/glowView"
+                    app:layout_constraintTop_toTopOf="@id/glowView" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:gravity="center"
+                android:text="YOUR DEVICE. YOUR IDENTITY. YOUR CONTROL."
+                android:textColor="@color/accent_blue"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06" />
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="25dp"
+                android:background="@drawable/bg_primary_button"
+                android:backgroundTint="@null"
+                android:elevation="3dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="LOG IN"
+                android:textAllCaps="false"
+                android:textColor="@color/button_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnSignup"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_secondary_button"
+                android:backgroundTint="@null"
+                app:backgroundTint="@null"
+                android:elevation="1dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="CREATE ACCOUNT"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_blue"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="PRIVACY FIRST  •  BEHAVIOUR BASED"
+                android:textColor="@color/secondary_text"
+                android:textSize="10sp"
+                android:letterSpacing="0.06" />
+
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

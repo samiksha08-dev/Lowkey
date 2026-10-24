@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/screen_background"
+    android:background="#0B1220"
     android:fillViewport="true">
 
     <LinearLayout
@@ -18,8 +17,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="45dp"
-            android:text="LOWKEY"
-            android:textColor="@color/primary_text"
+            android:text="LOWKEY 🔐"
+            android:textColor="#F1F5F9"
             android:textSize="30sp"
             android:textStyle="bold"
             android:letterSpacing="0.08" />
@@ -27,9 +26,19 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="35dp"
+            android:layout_marginTop="6dp"
+            android:text="ZERO-TRUST SECURITY"
+            android:textColor="#67E8D5"
+            android:textSize="11sp"
+            android:letterSpacing="0.12"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="42dp"
             android:text="Welcome back"
-            android:textColor="@color/primary_text"
+            android:textColor="#F1F5F9"
             android:textSize="28sp"
             android:textStyle="bold" />
 
@@ -38,20 +47,23 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Log in to continue to your secure space."
-            android:textColor="@color/secondary_text"
-            android:textSize="16sp" />
+            android:textColor="#9AAEC4"
+            android:textSize="15sp" />
 
         <EditText
             android:id="@+id/etLoginEmail"
             android:layout_width="match_parent"
             android:layout_height="58dp"
-            android:layout_marginTop="42dp"
+            android:layout_marginTop="36dp"
             android:background="@drawable/bg_input"
+            android:backgroundTint="#172437"
             android:hint="Email"
-            android:textColor="@color/primary_text"
+            android:textColor="#F1F5F9"
+            android:textColorHint="#8FA3BB"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etLoginPassword"
@@ -59,15 +71,18 @@
             android:layout_height="58dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/bg_input"
+            android:backgroundTint="#172437"
             android:hint="Password"
-            android:textColor="@color/primary_text"
+            android:textColor="#F1F5F9"
+            android:textColorHint="#8FA3BB"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             android:inputType="textPassword"
             android:drawableEnd="@android:drawable/ic_menu_view"
-            android:drawableTint="@color/secondary_text"
+            android:drawableTint="#8FA3BB"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true"
+            android:singleLine="true" />
 
         <TextView
             android:id="@+id/tvForgotPassword"
@@ -76,8 +91,10 @@
             android:layout_gravity="end"
             android:layout_marginTop="12dp"
             android:text="Forgot password?"
-            android:textColor="@color/accent_blue"
-            android:textSize="14sp" />
+            android:textColor="#67E8D5"
+            android:textSize="14sp"
+            android:clickable="true"
+            android:focusable="true" />
 
         <Button
             android:id="@+id/btnLoginSubmit"
@@ -88,7 +105,8 @@
             android:text="LOG IN"
             android:textColor="@color/button_text"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:stateListAnimator="@null" />
 
         <TextView
             android:id="@+id/tvGoSignup"
@@ -97,8 +115,10 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="26dp"
             android:text="Don't have an account?  Sign up"
-            android:textColor="@color/secondary_text"
-            android:textSize="15sp" />
+            android:textColor="#9AAEC4"
+            android:textSize="15sp"
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
 

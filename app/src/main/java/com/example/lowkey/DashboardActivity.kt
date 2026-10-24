@@ -293,14 +293,53 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Profile navigation
-        navProfile.setOnClickListener {
-            val intent = Intent(
-                this,
-                ProfileActivity::class.java
+        // Profile dropdown menu
+        // LOWKEY dark dropdown menu
+        navProfile.setOnClickListener { anchor ->
+
+            val popupMenu = androidx.appcompat.widget.PopupMenu(
+                android.view.ContextThemeWrapper(
+                    this,
+                    R.style.LowkeyPopupMenuTheme
+                ),
+                anchor
             )
 
-            startActivity(intent)
+            popupMenu.menu.add("Home")
+                .setOnMenuItemClickListener {
+                    startActivity(
+                        Intent(this, DashboardActivity::class.java)
+                    )
+                    true
+                }
+
+            popupMenu.menu.add("App")
+                .setOnMenuItemClickListener {
+                    startActivity(
+                        Intent(this, MainActivity::class.java)
+                    )
+                    true
+                }
+
+            popupMenu.menu.add("Profile")
+                .setOnMenuItemClickListener {
+                    startActivity(
+                        Intent(this, ProfileActivity::class.java)
+                    )
+                    true
+                }
+
+            popupMenu.menu.add("Settings")
+                .setOnMenuItemClickListener {
+                    startActivity(
+                        Intent(this, EditProfileActivity::class.java)
+                    )
+                    true
+                }
+
+            popupMenu.show()
         }
+
     }
 
     override fun onResume() {

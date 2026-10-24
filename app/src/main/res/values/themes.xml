@@ -27,5 +27,15 @@
     </style>
 
     <style name="Theme.Lowkey" parent="Base.Theme.Lowkey" />
+    <style name="LowkeyPopupMenuWidget"
+        parent="Widget.AppCompat.PopupMenu.Overflow">
+        <item name="android:popupBackground">#172437</item>
+    </style>
 
+    <style name="LowkeyPopupMenuTheme"
+        parent="ThemeOverlay.AppCompat.Dark">
+        <item name="popupMenuStyle">@style/LowkeyPopupMenuWidget</item>
+        <item name="android:textColorPrimary">#F1F5F9</item>
+        <item name="android:colorAccent">#67E8D5</item>
+    </style>
 </resources>

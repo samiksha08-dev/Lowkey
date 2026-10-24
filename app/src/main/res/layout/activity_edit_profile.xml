@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/screen_background">
+    android:background="#0B1220">
 
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,101 +21,141 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="22dp">
+            android:paddingStart="22dp"
+            android:paddingTop="28dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="32dp">
 
-            <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="25dp"
-                android:text="Edit Profile"
-                android:textColor="@color/primary_text"
+                android:letterSpacing="0.1"
+                android:text="LOWKEY  /  SETTINGS"
+                android:textColor="#67E8D5"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Profile settings"
+                android:textColor="#F1F5F9"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Update your personal information"
-                android:textColor="@color/secondary_text"
+                android:layout_marginTop="7dp"
+                android:text="Keep your account information up to date."
+                android:textColor="#9AAEC4"
                 android:textSize="14sp" />
 
-            <!-- Name -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:text="Full Name"
-                android:textColor="@color/primary_text"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etEditName"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_input"
-                android:hint="Enter your name"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:textColor="@color/primary_text"
-                android:textColorHint="@color/secondary_text"
-                android:inputType="textPersonName" />
-
-            <!-- Email -->
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Email"
-                android:textColor="@color/primary_text"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="28dp"
+                android:background="@drawable/bg_dashboard_card"
+                android:orientation="vertical"
+                android:padding="18dp">
 
-            <EditText
-                android:id="@+id/etEditEmail"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_input"
-                android:hint="Enter your email"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:textColor="@color/primary_text"
-                android:textColorHint="@color/secondary_text"
-                android:inputType="textEmailAddress" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PERSONAL INFORMATION"
+                    android:letterSpacing="0.08"
+                    android:textColor="#67E8D5"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
 
-            <!-- Save -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="Full name"
+                    android:textColor="#D8E4F0"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etEditName"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_dashboard_card"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:hint="Enter your name"
+                    android:textColor="#F1F5F9"
+                    android:textColorHint="#7489A2"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    android:inputType="textPersonName" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Email address"
+                    android:textColor="#D8E4F0"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etEditEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_dashboard_card"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:hint="Enter your email"
+                    android:textColor="#F1F5F9"
+                    android:textColorHint="#7489A2"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    android:inputType="textEmailAddress" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Your information is used to personalise your LOWKEY account."
+                    android:textColor="#7489A2"
+                    android:textSize="12sp"
+                    android:lineSpacingExtra="2dp" />
+
+            </LinearLayout>
+
             <Button
                 android:id="@+id/btnSaveProfile"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="22dp"
                 android:background="@drawable/bg_primary_button"
                 android:backgroundTint="@null"
+                app:backgroundTint="@null"
                 android:text="SAVE CHANGES"
-                android:textColor="@color/button_text"
+                android:textAllCaps="false"
+                android:textColor="#062B2A"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
-            <!-- Cancel -->
             <Button
                 android:id="@+id/btnCancelEdit"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="54dp"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_secondary_button"
                 android:backgroundTint="@null"
                 app:backgroundTint="@null"
-                android:text="CANCEL"
-                android:textColor="@color/accent_blue"
+                android:text="Cancel"
+                android:textAllCaps="false"
+                android:textColor="#67E8D5"
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
-
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
