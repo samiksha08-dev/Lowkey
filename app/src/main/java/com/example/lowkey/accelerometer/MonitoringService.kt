@@ -142,30 +142,48 @@ class MonitoringService : Service() {
     }
 
 
+    private var savedRecordCount = 0
     private fun saveRecord(record: BehaviourRecord) {
-
         val fileName = "accelerometer_data.csv"
 
-        val fileExists = fileList().contains(fileName)
+        try {
+            val fileExists = fileList().contains(fileName)
 
-        openFileOutput(
-            fileName,
-            MODE_APPEND
-        ).use { outputStream ->
+            openFileOutput(
+                fileName,
+                MODE_APPEND
+            ).use { outputStream ->
 
-            if (!fileExists) {
-                outputStream.write(
-                    "timestamp,x,y,z,accuracy\n".toByteArray()
+                if (!fileExists) {
+                    outputStream.write(
+                        "timestamp,x,y,z,accuracy\n".toByteArray()
+                    )
+                }
+
+                val data =
+                    "${record.timestamp},${record.x},${record.y}," +
+                            "${record.z},${record.accuracy}\n"
+
+                outputStream.write(data.toByteArray())
+            }
+
+            savedRecordCount++
+
+            if (savedRecordCount == 1 || savedRecordCount % 100 == 0) {
+                Log.d(
+                    "LOWKEY_ACCEL",
+                    "Records saved=$savedRecordCount, latest=${record.timestamp}"
                 )
             }
 
-            val data =
-                "${record.timestamp},${record.x},${record.y},${record.z},${record.accuracy}\n"
-
-            outputStream.write(data.toByteArray())
+        } catch (e: Exception) {
+            Log.e(
+                "LOWKEY_ACCEL",
+                "Failed to save accelerometer record",
+                e
+            )
         }
     }
-
     private fun createNotificationChannel() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
