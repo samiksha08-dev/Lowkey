@@ -29,3 +29,13 @@ tap_data_temp.csv
 tap_data.csv
 tap_scroll_speed.csv
 tap_data_backup.csv
+# LOWKEY personal behavioural data
+*.csv
+*.db
+*.zip
+
+# Temporary files
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
