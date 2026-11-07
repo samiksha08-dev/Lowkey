@@ -24,33 +24,117 @@ def _ensure_time(df):
     return out.dropna(subset=["timestamp_ist"]).sort_values("timestamp_ist")
 
 
+
 def tap_scroll_features(events):
     events = _ensure_time(events)
+
+    if "event_type" not in events.columns:
+        raise ValueError("TAP/SCROLL input must contain event_type")
+
+    events["_event_type"] = (
+        events["event_type"]
+        .astype("string")
+        .str.strip()
+        .str.upper()
+    )
+
     events = events.set_index("timestamp_ist")
-    parts = []
-    if "event_type" in events.columns:
-        taps = events[events["event_type"].astype(str).str.upper().eq("TAP")]
-        scrolls = events[events["event_type"].astype(str).str.upper().str.contains("SCROLL", na=False)]
+
+    taps = events[events["_event_type"] == "TAP"]
+    scrolls = events[events["_event_type"] == "SCROLL"]
+
+    # Create a continuous timeline covering all observed events.
+    window_index = events.resample(WINDOW).size().index
+
+    # ---------------- TAP FEATURES ----------------
+    tap_features = pd.DataFrame(index=window_index)
+
+    tap_count = (
+        taps.resample(WINDOW)
+        .size()
+        .reindex(window_index, fill_value=0)
+    )
+
+    tap_features["tap_count"] = tap_count.astype("int64")
+
+    for source, target in [
+        ("x_position", "avg_tap_x"),
+        ("y_position", "avg_tap_y")
+    ]:
+        if source in taps.columns:
+            values = pd.to_numeric(
+                taps[source], errors="coerce"
+            )
+            tap_features[target] = (
+                values.resample(WINDOW)
+                .mean()
+                .reindex(window_index)
+            )
+
+    # TAP coordinate availability
+    if {"x_position", "y_position"}.issubset(taps.columns):
+        valid = (
+            taps["x_position"].notna()
+            & taps["y_position"].notna()
+        )
+
+        available = (
+            valid.astype("int8")
+            .resample(WINDOW)
+            .sum()
+            .reindex(window_index, fill_value=0)
+        )
     else:
-        taps, scrolls = events.iloc[0:0], events
+        available = pd.Series(
+            0, index=window_index, dtype="int64"
+        )
 
-    tap = pd.DataFrame(index=taps.resample(WINDOW).size().index)
-    tap["tap_count"] = taps.resample(WINDOW).size()
-    for col, outcol in [("x", "avg_tap_x"), ("y", "avg_tap_y")]:
-        if col in taps.columns:
-            tap[outcol] = taps[col].resample(WINDOW).mean()
-    parts.append(tap)
+    tap_features["tap_coordinate_available_count"] = available
 
-    scroll = pd.DataFrame(index=scrolls.resample(WINDOW).size().index)
-    scroll["scroll_count"] = scrolls.resample(WINDOW).size()
-    for col, outcol in [("x", "avg_scroll_x"), ("y", "avg_scroll_y"),
-                        ("scroll_delta_y", "avg_scroll_delta_y")]:
-        if col in scrolls.columns:
-            scroll[outcol] = scrolls[col].resample(WINDOW).mean()
-    parts.append(scroll)
-    result = pd.concat(parts, axis=1).sort_index()
+    tap_features["tap_coordinate_coverage"] = (
+        available / tap_count.replace(0, np.nan)
+    )
+
+    # ---------------- SCROLL FEATURES ----------------
+    scroll_features = pd.DataFrame(index=window_index)
+
+    scroll_count = (
+        scrolls.resample(WINDOW)
+        .size()
+        .reindex(window_index, fill_value=0)
+    )
+
+    scroll_features["scroll_count"] = (
+        scroll_count.astype("int64")
+    )
+
+    for source, target in [
+        ("scroll_x", "avg_scroll_x"),
+        ("scroll_y", "avg_scroll_y"),
+        ("scroll_delta_x", "avg_scroll_delta_x"),
+        ("scroll_delta_y", "avg_scroll_delta_y")
+    ]:
+        if source in scrolls.columns:
+            values = pd.to_numeric(
+                scrolls[source], errors="coerce"
+            )
+
+            scroll_features[target] = (
+                values.resample(WINDOW)
+                .mean()
+                .reindex(window_index)
+            )
+
+    # ---------------- COMBINE FEATURES ----------------
+    result = pd.concat(
+        [tap_features, scroll_features],
+        axis=1
+    )
+
     result.index.name = "timestamp_ist"
+
     return result.reset_index()
+
 
 
 def accelerometer_features(acc):
@@ -74,22 +158,125 @@ def accelerometer_features(acc):
     return result.reset_index()
 
 
+
 def build_feature_dictionary(columns):
+
     descriptions = {
-        "tap_count": ("TAP/SCROLL", "Number of TAP events in a 10-second window", "count"),
-        "avg_tap_x": ("TAP/SCROLL", "Mean horizontal coordinate of TAP events", "coordinate"),
-        "avg_tap_y": ("TAP/SCROLL", "Mean vertical coordinate of TAP events", "coordinate"),
-        "scroll_count": ("TAP/SCROLL", "Number of SCROLL events in a 10-second window", "count"),
-        "avg_scroll_x": ("TAP/SCROLL", "Mean horizontal scroll position", "coordinate"),
-        "avg_scroll_y": ("TAP/SCROLL", "Mean vertical scroll position", "coordinate"),
-        "avg_scroll_delta_y": ("TAP/SCROLL", "Mean vertical scroll displacement", "coordinate/window"),
-        "acc_sample_count": ("Accelerometer", "Number of sensor samples in a 10-second window", "count"),
+        "timestamp_ist": (
+            "Time",
+            "Start time of the 10-second window",
+            "IST datetime"
+        ),
+
+        # TAP features
+        "tap_count": (
+            "TAP",
+            "Total number of taps in the window",
+            "count"
+        ),
+        "avg_tap_x": (
+            "TAP",
+            "Average horizontal tap coordinate",
+            "pixels"
+        ),
+        "avg_tap_y": (
+            "TAP",
+            "Average vertical tap coordinate",
+            "pixels"
+        ),
+        "tap_coordinate_available_count": (
+            "TAP",
+            "Number of taps with valid X and Y coordinates",
+            "count"
+        ),
+        "tap_coordinate_coverage": (
+            "TAP",
+            "Proportion of taps with valid coordinates",
+            "ratio"
+        ),
+
+        # SCROLL features
+        "scroll_count": (
+            "SCROLL",
+            "Number of scroll events in the window",
+            "count"
+        ),
+        "avg_scroll_x": (
+            "SCROLL",
+            "Average horizontal scroll position",
+            "pixels"
+        ),
+        "avg_scroll_y": (
+            "SCROLL",
+            "Average vertical scroll position",
+            "pixels"
+        ),
+        "avg_scroll_delta_x": (
+            "SCROLL",
+            "Average horizontal scroll displacement per event",
+            "pixels/event"
+        ),
+        "avg_scroll_delta_y": (
+            "SCROLL",
+            "Average vertical scroll displacement per event",
+            "pixels/event"
+        ),
+
+        # Accelerometer features
+        "acc_sample_count": (
+            "Accelerometer",
+            "Number of sensor readings in the window",
+            "count"
+        ),
+        "magnitude_rms": (
+            "Accelerometer",
+            "Root mean square of acceleration magnitude",
+            "m/s^2"
+        )
     }
+
+    # Add descriptions for accelerometer statistics
+    for axis in ["x", "y", "z", "magnitude"]:
+        for statistic in ["mean", "std", "min", "max"]:
+            name = f"{axis}_{statistic}"
+
+            descriptions[name] = (
+                "Accelerometer",
+                f"{statistic.title()} of {axis} acceleration",
+                "m/s^2"
+            )
+
     rows = []
+
     for name in columns:
-        source, description, unit = descriptions.get(name, ("Derived", "See feature name and preprocessing code", "varies"))
-        rows.append({"feature_name": name, "source": source, "description": description, "unit": unit})
+
+        if name in descriptions:
+            source, description, unit = descriptions[name]
+
+        elif name.endswith("_missing"):
+            base_name = name[:-8]
+
+            source = "Data Quality"
+            description = (
+                f"Missingness indicator for {base_name}; "
+                "1 means missing and 0 means available"
+            )
+            unit = "binary (0/1)"
+
+        else:
+            source = "Derived"
+            description = "Derived feature; inspect preprocessing code"
+            unit = "varies"
+
+        rows.append({
+            "feature_name": name,
+            "source": source,
+            "description": description,
+            "unit": unit
+        })
+
     return pd.DataFrame(rows)
+
 
 
 def main():
