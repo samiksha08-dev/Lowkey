@@ -1,5 +1,5 @@
+
 package com.example.lowkey.accelerometer
-import com.example.lowkey.security.SecurityManager
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -11,21 +11,54 @@ import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
+
+import com.example.lowkey.ml.BehaviourWindowProcessor
 import com.example.lowkey.security.ProtectionOverlayService
+import com.example.lowkey.security.SecurityManager
+
 class MonitoringService : Service() {
 
     private lateinit var accelerometerCollector: AccelerometerCollector
+    private lateinit var behaviourWindowProcessor: BehaviourWindowProcessor
 
     override fun onCreate() {
         super.onCreate()
 
         createNotificationChannel()
 
+        // Initialize the ML processing pipeline.
+        behaviourWindowProcessor =
+            BehaviourWindowProcessor(applicationContext) {
+                    windowStart,
+                    windowEnd,
+                    features,
+                    result ->
+
+                Log.i(
+                    "LOWKEY_SECURITY",
+                    """
+                    Model B inference completed
+                    Window: $windowStart - $windowEnd
+                    TAP count: ${features.tapCount}
+                    SCROLL count: ${features.scrollCount}
+                    Accelerometer samples: ${features.accelerometerSampleCount}
+                    Anomaly score: ${result.anomalyScore}
+                    Threshold: ${result.anomalyThreshold}
+                    Anomalous: ${result.isAnomalous}
+                    """.trimIndent()
+                )
+            }
+
+        // Initialize accelerometer collection.
         accelerometerCollector = AccelerometerCollector(this) { record ->
+
+            // Preserve existing CSV data collection.
             saveRecord(record)
+
+            // Also send the record to the ML processor.
+            behaviourWindowProcessor.onAccelerometerRecord(record)
         }
     }
-
 
     override fun onStartCommand(
         intent: Intent?,
@@ -34,10 +67,12 @@ class MonitoringService : Service() {
     ): Int {
 
         startMonitoringService()
+
         if (intent?.action == "TEST_PROTECTION") {
             triggerProtectionForTest()
             return START_NOT_STICKY
         }
+
         val preferences = getSharedPreferences(
             "LowkeyUser",
             MODE_PRIVATE
@@ -51,7 +86,6 @@ class MonitoringService : Service() {
 
         return START_STICKY
     }
-
 
     private fun startMonitoringService() {
 
@@ -76,7 +110,13 @@ class MonitoringService : Service() {
 
     override fun onDestroy() {
 
-        accelerometerCollector.stop()
+        if (::accelerometerCollector.isInitialized) {
+            accelerometerCollector.stop()
+        }
+
+        if (::behaviourWindowProcessor.isInitialized) {
+            behaviourWindowProcessor.close()
+        }
 
         val preferences = getSharedPreferences(
             "LowkeyUser",
@@ -87,6 +127,11 @@ class MonitoringService : Service() {
             .putBoolean("isMonitoring", false)
             .apply()
 
+        Log.i(
+            "LOWKEY_SERVICE",
+            "Monitoring service destroyed"
+        )
+
         super.onDestroy()
     }
 
@@ -94,59 +139,80 @@ class MonitoringService : Service() {
         return null
     }
 
-
     private fun triggerProtectionForTest() {
+
         if (!Settings.canDrawOverlays(this)) {
             Log.e("LOWKEY_SECURITY", "Overlay permission missing")
             return
         }
 
-        val intent = Intent(this, ProtectionOverlayService::class.java)
+        val intent = Intent(
+            this,
+            ProtectionOverlayService::class.java
+        )
+
         startService(intent)
 
-        Log.d("LOWKEY_SECURITY", "Suspicious behaviour detected. Protection triggered.")
+        Log.d(
+            "LOWKEY_SECURITY",
+            "Test protection triggered"
+        )
     }
-
 
     private fun showGrantAccess() {
+
         if (!Settings.canDrawOverlays(this)) {
             Log.e("LOWKEY_SECURITY", "Overlay permission missing")
             return
         }
 
-        val intent = Intent(this, ProtectionOverlayService::class.java)
+        val intent = Intent(
+            this,
+            ProtectionOverlayService::class.java
+        )
+
         intent.action = "SHOW_GRANT_ACCESS"
+
         startService(intent)
 
-        Log.d("LOWKEY_SECURITY", "Grant Access requested")
+        Log.d(
+            "LOWKEY_SECURITY",
+            "Grant Access requested"
+        )
     }
 
-
     private fun handleSecurityState(confidence: Float) {
-        val securityManager = com.example.lowkey.security.SecurityManager()
+
+        val securityManager = SecurityManager()
         val state = securityManager.evaluateConfidence(confidence)
 
         when (state) {
-            com.example.lowkey.security.SecurityManager.SecurityState.SUSPICIOUS -> {
+
+            SecurityManager.SecurityState.SUSPICIOUS -> {
                 triggerProtectionForTest()
             }
 
-            com.example.lowkey.security.SecurityManager.SecurityState.GENUINE -> {
+            SecurityManager.SecurityState.GENUINE -> {
                 showGrantAccess()
             }
 
-            com.example.lowkey.security.SecurityManager.SecurityState.NEEDS_VERIFICATION -> {
-                Log.d("LOWKEY_SECURITY", "Verification pending")
+            SecurityManager.SecurityState.NEEDS_VERIFICATION -> {
+                Log.d(
+                    "LOWKEY_SECURITY",
+                    "Verification pending"
+                )
             }
         }
     }
 
-
     private var savedRecordCount = 0
+
     private fun saveRecord(record: BehaviourRecord) {
+
         val fileName = "accelerometer_data.csv"
 
         try {
+
             val fileExists = fileList().contains(fileName)
 
             openFileOutput(
@@ -170,6 +236,7 @@ class MonitoringService : Service() {
             savedRecordCount++
 
             if (savedRecordCount == 1 || savedRecordCount % 100 == 0) {
+
                 Log.d(
                     "LOWKEY_ACCEL",
                     "Records saved=$savedRecordCount, latest=${record.timestamp}"
@@ -177,6 +244,7 @@ class MonitoringService : Service() {
             }
 
         } catch (e: Exception) {
+
             Log.e(
                 "LOWKEY_ACCEL",
                 "Failed to save accelerometer record",
@@ -184,6 +252,7 @@ class MonitoringService : Service() {
             )
         }
     }
+
     private fun createNotificationChannel() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -207,7 +276,7 @@ class MonitoringService : Service() {
 
             Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle("LOWKEY Monitoring")
-                .setContentText("Accelerometer monitoring is active")
+                .setContentText("Behavioural monitoring is active")
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .build()
 
@@ -215,7 +284,7 @@ class MonitoringService : Service() {
 
             Notification.Builder(this)
                 .setContentTitle("LOWKEY Monitoring")
-                .setContentText("Accelerometer monitoring is active")
+                .setContentText("Behavioural monitoring is active")
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .build()
         }

@@ -1,3 +1,4 @@
+
 package com.example.lowkey.tap
 
 import android.content.ContentValues
@@ -139,6 +140,48 @@ class TapDatabaseHelper(context: Context) :
 
         cursor.use {
             return if (it.moveToFirst()) it.getInt(0) else 0
+        }
+    }
+
+    // Get TAP and SCROLL counts for a specific time window.
+    fun getEventCountsBetween(
+        startTimestamp: Long,
+        endTimestamp: Long
+    ): Pair<Int, Int> {
+
+        require(endTimestamp > startTimestamp) {
+            "End timestamp must be greater than start timestamp"
+        }
+
+        val cursor = readableDatabase.rawQuery(
+            """
+            SELECT
+                COALESCE(
+                    SUM(CASE WHEN event_type = 'TAP' THEN 1 ELSE 0 END),
+                    0
+                ),
+                COALESCE(
+                    SUM(CASE WHEN event_type = 'SCROLL' THEN 1 ELSE 0 END),
+                    0
+                )
+            FROM tap_events
+            WHERE timestamp >= ? AND timestamp < ?
+            """.trimIndent(),
+            arrayOf(
+                startTimestamp.toString(),
+                endTimestamp.toString()
+            )
+        )
+
+        return cursor.use {
+            if (it.moveToFirst()) {
+                Pair(
+                    it.getInt(0),
+                    it.getInt(1)
+                )
+            } else {
+                Pair(0, 0)
+            }
         }
     }
 }

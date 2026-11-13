@@ -45,3 +45,8 @@ __pycache__/
 LOWKEY_DATASET/
 LOWKEY_PROCESSED/
 sample_data/
+
+# LOWKEY personalized Android model configuration
+app/src/main/assets/lowkey_model_b_onnx_metadata.json
+
+app/src/main/assets/lowkey_model_b_compact.onnx
