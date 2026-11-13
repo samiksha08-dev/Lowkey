@@ -1,3 +1,4 @@
+
 package com.example.lowkey
 
 import android.content.ComponentName
@@ -20,22 +21,24 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 import com.example.lowkey.accelerometer.MonitoringService
+import com.example.lowkey.security.ProtectionOverlayService
 import com.example.lowkey.tap.TapDatabaseHelper
-import com.example.lowkey.tap.TapTouchTracker
-import com.example.lowkey.tap.TapCsvLogger
 import com.example.lowkey.tap.TapMonitoringService
 
 class DashboardActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "LOWKEY_SERVICE"
+        private const val PREFS_NAME = "LowkeyUser"
+        private const val MONITORING_KEY = "isMonitoring"
+    }
+
     private var isMonitoring = false
 
     private lateinit var tapDatabase: TapDatabaseHelper
-    private lateinit var tapCsvLogger: TapCsvLogger
-
     private lateinit var tvTapCount: TextView
     private lateinit var tvScrollCount: TextView
 
-    // Check whether Accessibility Service is enabled
     private fun isTapAccessibilityServiceEnabled(): Boolean {
         val expectedService = ComponentName(
             this,
@@ -63,15 +66,22 @@ class DashboardActivity : AppCompatActivity() {
         return false
     }
 
+    private fun saveMonitoringState(enabled: Boolean): Boolean {
+        return getSharedPreferences(
+            PREFS_NAME,
+            MODE_PRIVATE
+        ).edit()
+            .putBoolean(MONITORING_KEY, enabled)
+            .commit()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_dashboard)
 
         tapDatabase = TapDatabaseHelper(this)
-        tapCsvLogger = TapCsvLogger(this)
 
-        // System bars
         ViewCompat.setOnApplyWindowInsetsListener(
             findViewById(R.id.main)
         ) { view, insets ->
@@ -90,85 +100,80 @@ class DashboardActivity : AppCompatActivity() {
             insets
         }
 
-        // Test Protection button
+        // Test Protection independently of behavioural monitoring.
         val btnTestProtection =
             findViewById<Button>(R.id.btnTestProtection)
 
         btnTestProtection.setOnClickListener {
-            val intent = Intent(
-                this,
-                MonitoringService::class.java
-            )
 
-            intent.action = "TEST_PROTECTION"
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(
+                    this,
+                    "Please enable overlay permission first",
+                    Toast.LENGTH_LONG
+                ).show()
 
-            Toast.makeText(
-                this,
-                "Test Protection button clicked",
-                Toast.LENGTH_SHORT
-            ).show()
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                )
 
-            startService(intent)
+                return@setOnClickListener
+            }
+
+            try {
+                startService(
+                    Intent(
+                        this,
+                        ProtectionOverlayService::class.java
+                    )
+                )
+
+                Toast.makeText(
+                    this,
+                    "Test Protection triggered",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start protection overlay", e)
+
+                Toast.makeText(
+                    this,
+                    "Protection error: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
-
-        // Track touch events on Test Protection button
-        val tapTracker = TapTouchTracker { event ->
-
-            tapDatabase.insertTap(event)
-            tapCsvLogger.appendTap(event)
-
-            refreshTapScrollCounts()
-        }
-
-        btnTestProtection.setOnTouchListener(tapTracker)
 
         // Dashboard views
-        val greeting =
-            findViewById<TextView>(R.id.tvGreeting)
-
-        val monitoringState =
-            findViewById<TextView>(R.id.tvMonitoringState)
-
-        val monitoringSwitch =
-            findViewById<SwitchCompat>(R.id.switchMonitoring)
-
-        val confidenceScore =
-            findViewById<TextView>(R.id.tvConfidenceScore)
-
-        val verificationStatus =
-            findViewById<TextView>(R.id.tvVerificationStatus)
-
-        val protectedApps =
-            findViewById<TextView>(R.id.tvProtectedApps)
-
-        val alerts =
-            findViewById<TextView>(R.id.tvAlerts)
-
-        val todayChecks =
-            findViewById<TextView>(R.id.tvTodayChecks)
-
+        val greeting = findViewById<TextView>(R.id.tvGreeting)
+        val monitoringState = findViewById<TextView>(R.id.tvMonitoringState)
+        val monitoringSwitch = findViewById<SwitchCompat>(R.id.switchMonitoring)
+        val confidenceScore = findViewById<TextView>(R.id.tvConfidenceScore)
+        val verificationStatus = findViewById<TextView>(R.id.tvVerificationStatus)
+        val protectedApps = findViewById<TextView>(R.id.tvProtectedApps)
+        val alerts = findViewById<TextView>(R.id.tvAlerts)
+        val todayChecks = findViewById<TextView>(R.id.tvTodayChecks)
         val progressConfidence =
             findViewById<ProgressBar>(R.id.progressConfidence)
+        val navProfile = findViewById<TextView>(R.id.navProfile)
 
-        val navProfile =
-            findViewById<TextView>(R.id.navProfile)
-
-        // Tap and scroll counts
         tvTapCount = findViewById(R.id.tvTapCount)
         tvScrollCount = findViewById(R.id.tvScrollCount)
 
-        // Saved user information
         val preferences = getSharedPreferences(
-            "LowkeyUser",
+            PREFS_NAME,
             MODE_PRIVATE
         )
 
         val savedName = preferences.getString("name", "User")
         greeting.text = "Hello, $savedName 👋"
 
-        // Restore saved monitoring state
         isMonitoring = preferences.getBoolean(
-            "isMonitoring",
+            MONITORING_KEY,
             false
         )
 
@@ -187,22 +192,16 @@ class DashboardActivity : AppCompatActivity() {
 
         refreshTapScrollCounts()
 
-        // Monitoring switch
         monitoringSwitch.setOnCheckedChangeListener { _, checked ->
 
             if (isMonitoring == checked) {
                 return@setOnCheckedChangeListener
             }
 
-            // Check Accessibility permission
             if (checked && !isTapAccessibilityServiceEnabled()) {
 
                 isMonitoring = false
-
-                preferences.edit()
-                    .putBoolean("isMonitoring", false)
-                    .apply()
-
+                saveMonitoringState(false)
                 monitoringSwitch.isChecked = false
 
                 AlertDialog.Builder(this)
@@ -218,11 +217,8 @@ class DashboardActivity : AppCompatActivity() {
                                 "5. Return to LOWKEY and turn Monitoring ON again."
                     )
                     .setPositiveButton("Open Settings") { _, _ ->
-
                         startActivity(
-                            Intent(
-                                Settings.ACTION_ACCESSIBILITY_SETTINGS
-                            )
+                            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                         )
                     }
                     .setNegativeButton("Cancel", null)
@@ -231,15 +227,10 @@ class DashboardActivity : AppCompatActivity() {
                 return@setOnCheckedChangeListener
             }
 
-            // Check overlay permission
             if (checked && !Settings.canDrawOverlays(this)) {
 
                 isMonitoring = false
-
-                preferences.edit()
-                    .putBoolean("isMonitoring", false)
-                    .apply()
-
+                saveMonitoringState(false)
                 monitoringSwitch.isChecked = false
 
                 AlertDialog.Builder(this)
@@ -266,14 +257,13 @@ class DashboardActivity : AppCompatActivity() {
                 return@setOnCheckedChangeListener
             }
 
-            // All required permissions are available
+            // Save the master state before starting or stopping services.
             isMonitoring = checked
 
-            preferences.edit()
-                .putBoolean("isMonitoring", checked)
-                .apply()
+            if (!saveMonitoringState(checked)) {
+                Log.e(TAG, "Could not persist monitoring state")
+            }
 
-            // Start or stop the existing monitoring service
             if (checked) {
                 startMonitoringService()
             } else {
@@ -293,8 +283,6 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Profile navigation
-        // Profile dropdown menu
-        // LOWKEY dark dropdown menu
         navProfile.setOnClickListener { anchor ->
 
             val popupMenu = androidx.appcompat.widget.PopupMenu(
@@ -339,7 +327,6 @@ class DashboardActivity : AppCompatActivity() {
 
             popupMenu.show()
         }
-
     }
 
     override fun onResume() {
@@ -355,20 +342,13 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun refreshTapScrollCounts() {
-        tvTapCount.text =
-            "Taps: ${tapDatabase.getTapCount()}"
-
-        tvScrollCount.text =
-            "Scrolls: ${tapDatabase.getScrollCount()}"
+        tvTapCount.text = "Taps: ${tapDatabase.getTapCount()}"
+        tvScrollCount.text = "Scrolls: ${tapDatabase.getScrollCount()}"
     }
 
-    // Start monitoring service
     private fun startMonitoringService() {
         try {
-            Log.d(
-                "LOWKEY_SERVICE",
-                "Starting MonitoringService"
-            )
+            Log.d(TAG, "Starting MonitoringService")
 
             val intent = Intent(
                 this,
@@ -386,18 +366,14 @@ class DashboardActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            Log.d(
-                "LOWKEY_SERVICE",
-                "startForegroundService() called"
-            )
+            Log.d(TAG, "startForegroundService() called")
 
         } catch (e: Exception) {
 
-            Log.e(
-                "LOWKEY_SERVICE",
-                "Failed to start MonitoringService",
-                e
-            )
+            Log.e(TAG, "Failed to start MonitoringService", e)
+
+            isMonitoring = false
+            saveMonitoringState(false)
 
             Toast.makeText(
                 this,
@@ -407,28 +383,41 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    // Stop monitoring service
     private fun stopMonitoringService() {
-        val intent = Intent(
+
+        // 1. Stop accelerometer collection and ML processing.
+        val monitoringIntent = Intent(
             this,
             MonitoringService::class.java
         )
 
-        stopService(intent)
+        val stopped = stopService(monitoringIntent)
+
+        Log.i(
+            TAG,
+            "MonitoringService stop requested: $stopped"
+        )
+
+        // 2. Ask the AccessibilityService to disable itself.
+        // The service itself calls disableSelf().
+        val disableIntent = Intent(
+            TapMonitoringService.ACTION_DISABLE_ACCESSIBILITY
+        ).setPackage(packageName)
+
+        sendBroadcast(disableIntent)
+
+        Log.i(
+            TAG,
+            "Accessibility disable request broadcast sent"
+        )
 
         Toast.makeText(
             this,
-            "Monitoring stopped",
+            "LOWKEY Monitoring stopped",
             Toast.LENGTH_SHORT
         ).show()
-
-        Log.d(
-            "LOWKEY_SERVICE",
-            "MonitoringService stopped"
-        )
     }
 
-    // Update dashboard UI
     private fun updateDashboard(
         enabled: Boolean,
         monitoringState: TextView,
@@ -439,7 +428,6 @@ class DashboardActivity : AppCompatActivity() {
         todayChecks: TextView,
         progressConfidence: ProgressBar
     ) {
-
         if (enabled) {
 
             monitoringState.text = "ON"
